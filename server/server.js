@@ -104,17 +104,30 @@ app.get('/bill-import.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/bill-import.html'));
 });
 
-async function startServer() {
+// Database connection function
+const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) return;
   try {
-    await mongoose.connect(MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI || MONGODB_URI);
     console.log('MongoDB connected successfully.');
-    app.listen(PORT, () => {
-      console.log(`FreshTrack server is running on http://localhost:${PORT}`);
-    });
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    process.exit(1);
   }
+};
+
+// Middleware to ensure DB connection before handling routes
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
+
+// Local testing ke liye (Vercel par app listen nahi call hota)
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 }
 
-startServer();
+// Vercel serverless function requirement
+module.exports = app;
