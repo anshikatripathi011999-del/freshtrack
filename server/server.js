@@ -105,13 +105,21 @@ app.get('/bill-import.html', (req, res) => {
 });
 
 // Database connection function
+let isConnected = false;
+
 const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) return;
+  if (isConnected && mongoose.connection.readyState === 1) return;
+
   try {
-    await mongoose.connect(process.env.MONGODB_URI || MONGODB_URI);
+    const db = await mongoose.connect(process.env.MONGODB_URI || MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      bufferCommands: false,
+    });
+    isConnected = db.connections[0].readyState === 1;
     console.log('MongoDB connected successfully.');
   } catch (error) {
     console.error('MongoDB connection error:', error);
+    throw error;
   }
 };
 
