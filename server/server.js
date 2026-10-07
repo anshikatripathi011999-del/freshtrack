@@ -9,8 +9,8 @@ const groceryRoutes = require('./routes/groceries').router;
 const billRoutes = require('./routes/bill');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
+const PORT = process.env.PORT || (isProduction ? 3000 : 5000);
 const MONGODB_URI = process.env.MONGODB_URI || (isProduction ? '' : 'mongodb://127.0.0.1:27017/freshtrack');
 const SESSION_SECRET = process.env.SESSION_SECRET || (isProduction ? '' : 'freshtrack-local-development-secret');
 
@@ -48,27 +48,43 @@ app.use(helmet({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// Line 51 se 66 ko replace karke yeh likho:
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || 'FreshTrack_2026_SecureSession_6hd8sdc3K',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 1000 * 60 * 60 * 8,
-    },
-  })
-);
+app.use(session({
+  secret: SESSION_SECRET,
+  store: MongoStore.create({
+    mongoUrl: MONGODB_URI,
+    collectionName: 'sessions',
+    ttl: 60 * 60 * 8
+  }),
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax',
+    maxAge: 1000 * 60 * 60 * 8
+  }
+}));
+
+let connectionPromise;
+async function connectDB() {
+  if (mongoose.connection.readyState === 1) return;
+  if (!connectionPromise) {
+    connectionPromise = mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
+      .catch((error) => {
+        connectionPromise = null;
+        throw error;
+      });
+  }
+  await connectionPromise;
+}
+
+app.use('/api', (req, res, next) => {
+  connectDB().then(() => next()).catch(next);
+});
 
 app.use('/api', authRoutes);
 app.use('/api', groceryRoutes);
 app.use('/api', billRoutes);
-
-app.use('/vendor/pdfjs', express.static(path.join(__dirname, '../node_modules/pdfjs-dist/build')));
-app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
@@ -102,34 +118,17 @@ app.get('/bill-import.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/bill-import.html'));
 });
 
-// Database connection function
-let isConnected = false;
+app.use('/vendor/pdfjs', express.static(path.join(__dirname, '../node_modules/pdfjs-dist/build')));
+app.use(express.static(path.join(__dirname, '../public'), { index: false, dotfiles: 'deny' }));
 
-const connectDB = async () => {
-  if (isConnected && mongoose.connection.readyState === 1) return;
-
-  try {
-    const db = await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000,
-      bufferCommands: false,
-    });
-    isConnected = db.connections[0].readyState === 1;
-    console.log('MongoDB connected successfully.');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    throw error;
-  }
-};
-
-// Middleware to ensure DB connection before handling routes
-app.use(async (req, res, next) => {
-  await connectDB();
-  next();
+app.use((error, req, res, next) => {
+  console.error('Request failed:', error);
+  if (res.headersSent) return next(error);
+  const status = error.code === 'LIMIT_FILE_SIZE' ? 413 : (error.status || 500);
+  res.status(status).json({ message: isProduction ? 'Request failed.' : error.message });
 });
 
-// Local testing ke liye (Vercel par app listen nahi call hota)
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000;
+if (!isProduction) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
