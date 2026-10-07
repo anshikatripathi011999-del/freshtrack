@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FreshTrack | Login</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body class="auth-body">
+    <div class="auth-shell">
+      <div class="auth-card">
+        <div class="auth-brand">
+          <span class="brand-icon">🥬</span>
+          <h1>FreshTrack</h1>
+        </div>
+        <h2>Welcome Back</h2>
+        <p class="auth-subtitle">Manage your groceries with smart tracking.</p>
+
+        <form id="loginForm" class="auth-form">
+          <label>
+            Email
+            <input type="email" id="loginEmail" name="email" placeholder="you@example.com" required />
+          </label>
+
+          <label>
+            Password
+            <input type="password" id="loginPassword" name="password" placeholder="Enter password" required />
+          </label>
+
+          <button type="submit" class="btn btn-primary btn-block">Login</button>
+        </form>
+
+        <div id="loginError" class="form-message error" aria-live="polite"></div>
+
+        <p class="auth-switch">
+          Don’t have an account?
+          <a href="/signup.html">Sign Up</a>
+        </p>
+      </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+  </body>
+</html>

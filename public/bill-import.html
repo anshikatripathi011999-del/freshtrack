@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FreshTrack | Bill Import</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body class="app-body">
+    <div class="app-layout">
+      <aside class="sidebar">
+        <div class="brand sidebar-brand">
+          <span class="brand-icon">🥬</span>
+          <span>FreshTrack</span>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="/dashboard.html">Dashboard</a>
+          <a href="/groceries.html">My Groceries</a>
+          <a href="/add-grocery.html">Add Grocery</a>
+          <a class="active" href="/bill-import.html">Bill Import</a>
+        </nav>
+      </aside>
+      <main class="content-area">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">A shortcut for your shop</p>
+            <h1>Import your grocery bill</h1>
+            <p class="page-subtitle">Upload a grocery bill to bring purchased items into your kitchen list.</p>
+          </div>
+          <div class="topbar-actions">
+            <button id="notificationBtn" class="icon-btn" type="button" aria-label="Notifications">🔔</button>
+            <button class="btn btn-quiet" data-logout="true" type="button">Log out</button>
+          </div>
+        </header>
+
+        <div class="bill-layout" id="billUploadPanel">
+          <section class="form-card bill-upload-card">
+            <div class="bill-section-heading">
+              <span class="step-number">01</span>
+              <div>
+                <h2>Choose your bill</h2>
+                <p>We’ll read the items from your bill in this browser session.</p>
+              </div>
+            </div>
+
+            <label id="billDropZone" class="bill-drop-zone">
+              <span class="upload-symbol" aria-hidden="true">▧</span>
+              <span class="drop-title">Drag &amp; drop your bill here</span>
+              <span class="drop-prompt">or <span class="browse-link">choose file</span></span>
+              <span id="selectedBillName" class="selected-bill-name">JPG, PNG, WebP, or PDF</span>
+              <input id="billImageInput" class="bill-file-input" type="file" accept="image/png,image/jpeg,image/webp,application/pdf,.pdf" />
+            </label>
+
+            <div id="billPreviewWrap" class="bill-preview hidden">
+              <img id="billPreview" alt="Selected bill preview" />
+            </div>
+
+            <div class="bill-upload-actions">
+              <div id="ocrStatus" class="form-message info" aria-live="polite"></div>
+              <button id="uploadAnotherBillBtn" class="btn btn-secondary hidden" type="button">Upload another bill</button>
+              <button id="processBillBtn" class="btn btn-primary" type="button" disabled>Find grocery items</button>
+            </div>
+          </section>
+
+          <aside class="bill-guide">
+            <p class="eyebrow">How it works</p>
+            <h2>A helpful head start.</h2>
+            <ol class="bill-steps">
+              <li><span>1</span><div><strong>Choose an invoice</strong><small>Use a clear image of your grocery bill.</small></div></li>
+              <li><span>2</span><div><strong>Review detected items</strong><small>Check product names, quantity and price.</small></div></li>
+              <li><span>3</span><div><strong>Add expiry dates</strong><small>Confirm details before saving to groceries.</small></div></li>
+            </ol>
+            <p class="bill-privacy-note">Your bill image is processed temporarily and then removed.</p>
+          </aside>
+        </div>
+
+        <section class="form-card results-panel hidden" id="resultsPanel">
+          <div class="results-heading">
+            <div>
+              <p class="eyebrow">Review your bill</p>
+              <h2>Choose grocery items</h2>
+              <p id="reviewBillName" class="page-subtitle"></p>
+            </div>
+            <span id="detectedItemCount" class="detected-count"></span>
+          </div>
+
+          <section id="selectionStep">
+            <div id="pendingBillItems" class="bill-selection-list"></div>
+            <p id="selectionMessage" class="selection-message" aria-live="polite"></p>
+            <div class="form-actions bill-flow-actions">
+              <button id="continueSelectedBtn" class="btn btn-primary" type="button">Continue with selected <span aria-hidden="true">→</span></button>
+              <button id="chooseAnotherFileBtn" class="btn btn-secondary" type="button">Choose another file</button>
+            </div>
+          </section>
+
+          <section id="detailsStep" class="hidden">
+            <div class="bill-details-heading">
+              <h3>Add the remaining details</h3>
+              <button id="backToSelectionBtn" class="text-btn" type="button">Back to items</button>
+            </div>
+            <div id="billDetailsList" class="pending-bill-items"></div>
+          </section>
+        </section>
+
+      </main>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/bill-import.js"></script>
+  </body>
+</html>

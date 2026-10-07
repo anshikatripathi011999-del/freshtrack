@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FreshTrack | Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body class="app-body">
+    <div class="app-layout">
+      <aside class="sidebar">
+        <div class="brand sidebar-brand">
+          <span class="brand-icon">🥬</span>
+          <span>FreshTrack</span>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a class="active" href="/dashboard.html">Dashboard</a>
+          <a href="/groceries.html">My Groceries</a>
+          <a href="/add-grocery.html">Add Grocery</a>
+          <a href="/bill-import.html">Bill Import</a>
+        </nav>
+      </aside>
+
+      <main class="content-area dashboard-page">
+        <header class="topbar dashboard-header">
+          <div>
+            <p class="eyebrow" id="dashboardDate"></p>
+            <h1>Hello, <span id="userNameDisplay">there</span>!</h1>
+            <p class="dashboard-subtitle">Here's what's happening with your groceries today.</p>
+          </div>
+          <div class="topbar-actions">
+            <div class="notification-action">
+              <button id="notificationBtn" class="icon-btn" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="notificationPanel">
+                🔔
+                <span id="notificationCount" class="count-badge">0</span>
+              </button>
+              <div id="notificationPanel" class="notification-panel hidden" aria-live="polite"></div>
+            </div>
+            <button class="btn btn-quiet" data-logout="true" type="button">Log out</button>
+          </div>
+        </header>
+
+        <section class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label-row"><span class="stat-icon total-icon" aria-hidden="true">▤</span><span class="stat-label">Total items</span></div>
+            <strong id="totalGroceries">0</strong>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label-row"><span class="stat-icon fresh-icon" aria-hidden="true">✳</span><span class="stat-label">Fresh</span></div>
+            <strong id="freshCount">0</strong>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-label-row"><span class="stat-icon expiring-icon" aria-hidden="true">◷</span><span class="stat-label">Expiring soon</span></div>
+            <strong id="expiringSoonCount">0</strong>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-label-row"><span class="stat-icon expired-icon" aria-hidden="true">!</span><span class="stat-label">Expired</span></div>
+            <strong id="expiredCount">0</strong>
+          </div>
+        </section>
+
+        <section class="dashboard-panels">
+          <div class="dashboard-list-panel">
+            <div class="panel-header">
+              <div><p class="eyebrow">First things first</p><h2>Use these soon</h2></div>
+            </div>
+            <div id="expiringSoonList" class="list-stack"></div>
+          </div>
+
+          <div class="dashboard-list-panel">
+            <div class="panel-header">
+              <div><p class="eyebrow">Just brought home</p><h2>Recently added</h2></div>
+            </div>
+            <div id="recentGroceries" class="list-stack"></div>
+          </div>
+        </section>
+
+        <section class="dashboard-action-strip">
+          <div>
+            <p class="eyebrow">Make it a little easier</p>
+            <h2>What would you like to do?</h2>
+          </div>
+          <nav class="dashboard-actions" aria-label="Grocery actions">
+            <a href="/groceries.html"><span aria-hidden="true">▤</span>View groceries</a>
+            <a href="/add-grocery.html"><span aria-hidden="true">＋</span>Add groceries</a>
+            <a href="/bill-import.html"><span aria-hidden="true">⇧</span>Import bill</a>
+          </nav>
+        </section>
+
+      </main>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/dashboard.js"></script>
+  </body>
+</html>

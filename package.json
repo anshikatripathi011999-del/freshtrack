@@ -1,0 +1,32 @@
+{
+  "name": "freshtrack",
+  "version": "1.0.0",
+  "description": "FreshTrack Grocery Tracker",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js"
+  },
+  "keywords": [
+    "grocery",
+    "tracker",
+    "express",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "connect-mongo": "^6.0.0",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "helmet": "^8.3.0",
+    "mongoose": "^8.5.1",
+    "multer": "^1.4.5-lts.1",
+    "pdfjs-dist": "^4.10.38",
+    "tesseract.js": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

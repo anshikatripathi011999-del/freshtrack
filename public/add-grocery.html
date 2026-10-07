@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FreshTrack | Add Grocery</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body class="app-body add-grocery-page">
+    <div class="app-layout">
+      <aside class="sidebar">
+        <div class="brand sidebar-brand">
+          <span class="brand-icon">🥬</span>
+          <span>FreshTrack</span>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="/dashboard.html">Dashboard</a>
+          <a href="/groceries.html">My Groceries</a>
+          <a class="active" href="/add-grocery.html">Add Grocery</a>
+          <a href="/bill-import.html">Bill Import</a>
+        </nav>
+      </aside>
+      <main class="content-area">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">New item</p>
+            <h1>Add Grocery</h1>
+          </div>
+          <div class="topbar-actions">
+            <button id="notificationBtn" class="icon-btn" type="button" aria-label="Notifications">🔔</button>
+            <button class="btn btn-quiet" data-logout="true" type="button">Log out</button>
+          </div>
+        </header>
+
+        <section class="form-card add-grocery-card">
+          <form id="addGroceryForm" class="stacked-form">
+            <div class="form-grid">
+              <label>
+                Grocery Name
+                <input type="text" id="name" name="name" placeholder="e.g. Milk" required />
+              </label>
+
+              <label>
+                Category
+                <select id="category" name="category" required>
+                  <option value="">Select category</option>
+                  <option value="Fruits">Fruits</option>
+                  <option value="Vegetables">Vegetables</option>
+                  <option value="Dairy">Dairy</option>
+                  <option value="Bakery">Bakery</option>
+                  <option value="Snacks">Snacks</option>
+                  <option value="Beverages">Beverages</option>
+                  <option value="Meat">Meat</option>
+                  <option value="Pantry">Pantry</option>
+                  <option value="Frozen">Frozen</option>
+                  <option value="Household">Household</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+
+              <label>
+                Quantity
+                <input type="number" id="quantity" name="quantity" step="0.01" min="0" required />
+              </label>
+
+              <label>
+                Purchase Date
+                <input type="date" id="purchaseDate" name="purchaseDate" required />
+              </label>
+
+              <label>
+                Expiry Date
+                <input type="date" id="expiryDate" name="expiryDate" />
+              </label>
+
+              <label>
+                Price
+                <input type="number" id="price" name="price" step="0.01" min="0" required />
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Save Grocery</button>
+            </div>
+          </form>
+          <div id="addGroceryMessage" class="form-message success" aria-live="polite"></div>
+        </section>
+
+      </main>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/add-grocery.js"></script>
+  </body>
+</html>
