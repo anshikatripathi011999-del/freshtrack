@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
 const router = express.Router();
 
@@ -27,6 +28,9 @@ function regenerateUserSession(req, user) {
 
 router.post('/signup', async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(process.env.MONGODB_URI);
+    }
     const { name, email, password, confirmPassword } = req.body;
 
     if (!name || !email || !password || !confirmPassword) {
@@ -67,6 +71,9 @@ router.post('/signup', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(process.env.MONGODB_URI);
+    }
     const { email, password } = req.body;
 
     if (!email || !password) {
