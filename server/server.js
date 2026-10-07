@@ -48,22 +48,20 @@ app.use(helmet({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(session({
-  secret: SESSION_SECRET,
-  store: MongoStore.create({
-    mongoUrl: MONGODB_URI,
-    collectionName: 'sessions',
-    ttl: 60 * 60 * 8
-  }),
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
-    maxAge: 1000 * 60 * 60 * 8
-  }
-}));
+// Line 51 se 66 ko replace karke yeh likho:
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'FreshTrack_2026_SecureSession_6hd8sdc3K',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 8,
+    },
+  })
+);
 
 app.use('/api', authRoutes);
 app.use('/api', groceryRoutes);
@@ -111,7 +109,7 @@ const connectDB = async () => {
   if (isConnected && mongoose.connection.readyState === 1) return;
 
   try {
-    const db = await mongoose.connect(process.env.MONGODB_URI || MONGODB_URI, {
+    const db = await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 5000,
       bufferCommands: false,
     });
