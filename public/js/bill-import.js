@@ -17,11 +17,12 @@ const reviewBillName = document.getElementById('reviewBillName');
 const detectedItemCount = document.getElementById('detectedItemCount');
 const uploadAnotherBillBtn = document.getElementById('uploadAnotherBillBtn');
 const billUploadPanel = document.getElementById('billUploadPanel');
+billImageInput.disabled = true;
 
 let currentFile = null;
 let pendingItems = [];
 let billFlowStep = 'selection';
-const billDraftKey = 'freshtrack.billImportDraft.v1';
+let billDraftKey = null;
 
 const groceryCategories = [
   'Fruits', 'Vegetables', 'Dairy', 'Bakery', 'Snacks',
@@ -294,6 +295,10 @@ async function extractScannedPdfItems(file, worker) {
 
 function setBillFile(file) {
   if (!file) return;
+  if (!billDraftKey) {
+    showOCRStatus('Checking your account. Please choose the bill again in a moment.', 'info');
+    return;
+  }
   const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
   const isImage = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type);
   if (!isPdf && !isImage) {
@@ -470,7 +475,7 @@ function renderBillDetails() {
           <option value="${escapeHtml(category)}" ${category === item.category ? 'selected' : ''}>${escapeHtml(category)}</option>
         `).join('')}</select></label>
         <label>Purchase date<input data-field="purchaseDate" type="date" value="${escapeHtml(item.purchaseDate)}" required /></label>
-        <label>Expiry date<input data-field="expiryDate" type="date" value="${escapeHtml(item.expiryDate)}" required /></label>
+        <label>Expiry date<input data-field="expiryDate" type="date" value="${escapeHtml(item.expiryDate)}" /></label>
         <label>Price (₹)<input data-field="price" type="number" min="0.01" step="0.01" value="${escapeHtml(item.price)}" required /></label>
       </div>
       <div class="pending-bill-actions">
@@ -632,4 +637,27 @@ uploadAnotherBillBtn.addEventListener('click', () => {
   billImageInput.click();
 });
 
-restoreBillDraft();
+async function initializeBillImport() {
+  try {
+    const response = await fetch('/api/session', { cache: 'no-store' });
+    if (!response.ok) {
+      window.location.replace('/login.html');
+      return;
+    }
+
+    const data = await response.json();
+    if (!data.user?.id) {
+      window.location.replace('/login.html');
+      return;
+    }
+
+    billDraftKey = `freshtrack.billImportDraft.v1.${data.user.id}`;
+    restoreBillDraft();
+    billImageInput.disabled = false;
+  } catch (error) {
+    console.error('Could not initialize bill import:', error);
+    showOCRStatus('Could not verify your login. Please reload and try again.', 'error');
+  }
+}
+
+initializeBillImport();

@@ -90,33 +90,46 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-app.get('/dashboard.html', (req, res) => {
-  if (!req.session.userId) {
-    return res.redirect('/login.html');
-  }
-  res.sendFile(path.join(__dirname, '../public/dashboard.html'));
-});
+function sendFreshAuthPage(pageName) {
+  return (req, res) => {
+    res.set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
 
-app.get('/groceries.html', (req, res) => {
-  if (!req.session.userId) {
-    return res.redirect('/login.html');
-  }
-  res.sendFile(path.join(__dirname, '../public/groceries.html'));
-});
+    const sendPage = () => {
+      res.clearCookie('connect.sid', {
+        path: '/',
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'lax'
+      });
+      res.sendFile(path.join(__dirname, '../public', pageName));
+    };
 
-app.get('/add-grocery.html', (req, res) => {
-  if (!req.session.userId) {
-    return res.redirect('/login.html');
-  }
-  res.sendFile(path.join(__dirname, '../public/add-grocery.html'));
-});
+    if (!req.session) return sendPage();
+    req.session.destroy(() => sendPage());
+  };
+}
 
-app.get('/bill-import.html', (req, res) => {
-  if (!req.session.userId) {
-    return res.redirect('/login.html');
-  }
-  res.sendFile(path.join(__dirname, '../public/bill-import.html'));
-});
+app.get('/login.html', sendFreshAuthPage('login.html'));
+app.get('/signup.html', sendFreshAuthPage('signup.html'));
+
+function sendPrivatePage(pageName) {
+  return (req, res) => {
+    res.set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    if (!req.session || !req.session.userId) {
+      return res.redirect('/login.html');
+    }
+    return res.sendFile(path.join(__dirname, '../public', pageName));
+  };
+}
+
+app.get('/dashboard.html', sendPrivatePage('dashboard.html'));
+app.get('/groceries.html', sendPrivatePage('groceries.html'));
+app.get('/add-grocery.html', sendPrivatePage('add-grocery.html'));
+app.get('/bill-import.html', sendPrivatePage('bill-import.html'));
 
 app.use('/vendor/pdfjs', express.static(path.join(__dirname, '../node_modules/pdfjs-dist/build')));
 app.use(express.static(path.join(__dirname, '../public'), { index: false, dotfiles: 'deny' }));

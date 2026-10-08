@@ -10,9 +10,42 @@
       "use": "@vercel/static"
     }
   ],
+  "functions": {
+    "server/server.js": {
+      "includeFiles": "node_modules/pdfjs-dist/build/**"
+    }
+  },
   "routes": [
     {
       "src": "/api/(.*)",
+      "dest": "server/server.js"
+    },
+    {
+      "src": "/login.html",
+      "dest": "server/server.js"
+    },
+    {
+      "src": "/signup.html",
+      "dest": "server/server.js"
+    },
+    {
+      "src": "/vendor/pdfjs/(.*)",
+      "dest": "server/server.js"
+    },
+    {
+      "src": "/dashboard.html",
+      "dest": "server/server.js"
+    },
+    {
+      "src": "/groceries.html",
+      "dest": "server/server.js"
+    },
+    {
+      "src": "/add-grocery.html",
+      "dest": "server/server.js"
+    },
+    {
+      "src": "/bill-import.html",
       "dest": "server/server.js"
     },
     {

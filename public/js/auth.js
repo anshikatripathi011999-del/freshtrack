@@ -1,5 +1,3 @@
-const isAuthPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('signup.html');
-
 function showMessage(elementId, message, type = 'error') {
   const element = document.getElementById(elementId);
   if (!element) return;
@@ -67,14 +65,3 @@ document.querySelectorAll('[data-logout="true"]').forEach((logoutButton) => {
   });
 });
 
-if (isAuthPage) {
-  fetch('/api/groceries', { method: 'GET' })
-    .then((response) => {
-      if (response.ok) {
-        window.location.href = '/dashboard.html';
-      }
-    })
-    .catch(() => {
-      // Ignore if not logged in
-    });
-}

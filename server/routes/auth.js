@@ -118,6 +118,8 @@ router.post('/logout', (req, res) => {
 });
 
 router.get('/session', (req, res) => {
+  res.set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+  res.set('Pragma', 'no-cache');
   if (!req.session || !req.session.userId) {
     return res.status(401).json({ message: 'Not logged in.' });
   }
