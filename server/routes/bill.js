@@ -1,30 +1,13 @@
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
 const multer = require('multer');
 const Tesseract = require('tesseract.js');
 const { requireAuth } = require('./groceries');
 
 const router = express.Router();
-const uploadDir = path.join(__dirname, '../uploads');
-
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
-    cb(null, uniqueName);
-  }
-});
 
 const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 4 * 1024 * 1024 },
   fileFilter: (req, file, callback) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.mimetype)) {
@@ -179,7 +162,7 @@ router.post('/bill/import', requireAuth, upload.single('billImage'), async (req,
       return res.status(400).json({ message: 'Please choose a bill image.' });
     }
 
-    const { data } = await Tesseract.recognize(req.file.path, 'eng');
+    const { data } = await Tesseract.recognize(req.file.buffer, 'eng');
     const parsedItems = extractBillItems(data.text || '');
 
     return res.status(200).json({
@@ -190,14 +173,6 @@ router.post('/bill/import', requireAuth, upload.single('billImage'), async (req,
   } catch (error) {
     console.error('Bill OCR error:', error);
     return res.status(500).json({ message: 'OCR processing failed. Please try again with a clearer image.' });
-  } finally {
-    if (req.file) {
-      fs.unlink(req.file.path, (unlinkError) => {
-        if (unlinkError) {
-          console.error('Failed to delete temp bill image:', unlinkError);
-        }
-      });
-    }
   }
 });
 

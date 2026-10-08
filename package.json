@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server/server.js",
     "dev": "nodemon server/server.js",
-    "dev:api": "nodemon server/server.js"
+    "dev:api": "nodemon server/server.js",
+    "postinstall": "node scripts/copy-pdfjs-assets.js"
   },
   "keywords": [
     "grocery",

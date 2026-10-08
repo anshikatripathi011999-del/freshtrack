@@ -231,7 +231,7 @@ async function extractScannedPdfItems(file) {
   for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
     showOCRStatus(`Scanning PDF page ${pageNumber} of ${pdfDocument.numPages}...`, 'info');
     const page = await pdfDocument.getPage(pageNumber);
-    const viewport = page.getViewport({ scale: 2 });
+    const viewport = page.getViewport({ scale: 1.5 });
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     canvas.width = Math.ceil(viewport.width);
@@ -239,10 +239,10 @@ async function extractScannedPdfItems(file) {
     await page.render({ canvasContext: context, viewport }).promise;
 
     const imageBlob = await new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Could not render this PDF page.')), 'image/png');
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Could not render this PDF page.')), 'image/jpeg', 0.82);
     });
     const formData = new FormData();
-    formData.append('billImage', imageBlob, `bill-page-${pageNumber}.png`);
+    formData.append('billImage', imageBlob, `bill-page-${pageNumber}.jpg`);
     const response = await fetch('/api/bill/import', { method: 'POST', body: formData });
     const result = await response.json();
 
@@ -266,10 +266,11 @@ function setBillFile(file) {
     showOCRStatus('Choose a JPG, PNG, WebP, or PDF bill.', 'error');
     return;
   }
-  if (file.size > 10 * 1024 * 1024) {
+  const maxFileSize = isPdf ? 10 * 1024 * 1024 : 4 * 1024 * 1024;
+  if (file.size > maxFileSize) {
     currentFile = null;
     processBillBtn.disabled = true;
-    showOCRStatus('The bill image must be smaller than 10 MB.', 'error');
+    showOCRStatus(isPdf ? 'The bill PDF must be smaller than 10 MB.' : 'Bill images must be smaller than 4 MB.', 'error');
     return;
   }
 

@@ -1,5 +1,7 @@
 node_modules/
 .env
 .DS_Store
+public/vendor/pdfjs/
 server/uploads/*
 !server/uploads/.gitkeep
+public/vendor/pdfjs/
