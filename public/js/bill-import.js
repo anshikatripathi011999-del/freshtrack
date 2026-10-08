@@ -97,6 +97,45 @@ async function loadPdfDocument(file) {
   return { pdfjs, document };
 }
 
+async function createBrowserOcrWorker() {
+  const tesseractModule = await import('/vendor/tesseract/tesseract.esm.min.js');
+  const tesseract = tesseractModule.default || tesseractModule;
+  return tesseract.createWorker('eng', tesseract.OEM.LSTM_ONLY, {
+    workerPath: '/vendor/tesseract/worker.min.js',
+    corePath: '/vendor/tesseract/tesseract-core-simd-lstm.wasm.js',
+    langPath: '/vendor/tesseract/lang',
+    gzip: false,
+    cacheMethod: 'none',
+    workerBlobURL: false,
+    logger: (message) => {
+      if (message.status) {
+        const progress = Number.isFinite(message.progress) ? ` ${Math.round(message.progress * 100)}%` : '';
+        showOCRStatus(`${message.status}${progress}`, 'info');
+      }
+    }
+  });
+}
+
+async function recognizeBillImage(image, worker) {
+  const result = await worker.recognize(image);
+  return result.data.text || '';
+}
+
+async function parseBillText(text) {
+  const response = await fetch('/api/bill/parse', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text })
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    const error = new Error(result.message || 'No grocery items were detected.');
+    error.status = response.status;
+    throw error;
+  }
+  return result.items || [];
+}
+
 async function extractPdfText(file) {
   const { document } = await loadPdfDocument(file);
   const pageTexts = [];
@@ -224,7 +263,7 @@ async function extractStructuredPdfItems(file) {
   return extractedItems.slice(0, 50);
 }
 
-async function extractScannedPdfItems(file) {
+async function extractScannedPdfItems(file, worker) {
   const { document: pdfDocument } = await loadPdfDocument(file);
   const items = [];
 
@@ -241,15 +280,12 @@ async function extractScannedPdfItems(file) {
     const imageBlob = await new Promise((resolve, reject) => {
       canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Could not render this PDF page.')), 'image/jpeg', 0.82);
     });
-    const formData = new FormData();
-    formData.append('billImage', imageBlob, `bill-page-${pageNumber}.jpg`);
-    const response = await fetch('/api/bill/import', { method: 'POST', body: formData });
-    const result = await response.json();
-
-    if (!response.ok && response.status !== 422) {
-      throw new Error(result.message || `Could not read PDF page ${pageNumber}.`);
+    const pageText = await recognizeBillImage(imageBlob, worker);
+    try {
+      items.push(...await parseBillText(pageText));
+    } catch (error) {
+      if (error.status !== 400 && error.status !== 422) throw error;
     }
-    items.push(...(result.items || []));
     if (items.length >= 10) break;
   }
 
@@ -339,38 +375,27 @@ processBillBtn.addEventListener('click', async () => {
 
       if (!pendingItems.length) {
         const text = await extractPdfText(currentFile);
-        response = await fetch('/api/bill/parse', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text })
-        });
-        let result = await response.json();
+        try {
+          pendingItems = await parseBillText(text);
+        } catch (error) {
+          if (error.status !== 400 && error.status !== 422) throw error;
 
-        if (response.status === 400 || response.status === 422 || (response.ok && !result.items?.length)) {
-          const items = await extractScannedPdfItems(currentFile);
-          if (!items.length) {
-            throw new Error('No grocery items were detected. Try a clearer PDF or image-based bill.');
+          const worker = await createBrowserOcrWorker();
+          try {
+            pendingItems = await extractScannedPdfItems(currentFile, worker);
+          } finally {
+            await worker.terminate();
           }
-          result = { items };
-        } else if (!response.ok) {
-          throw new Error(result.message || 'Could not extract grocery items from this PDF.');
         }
-
-        pendingItems = result.items || [];
       }
     } else {
-      const formData = new FormData();
-      formData.append('billImage', currentFile);
-      response = await fetch('/api/bill/import', {
-        method: 'POST',
-        body: formData
-      });
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Could not extract grocery items.');
+      const worker = await createBrowserOcrWorker();
+      try {
+        const text = await recognizeBillImage(currentFile, worker);
+        pendingItems = await parseBillText(text);
+      } finally {
+        await worker.terminate();
       }
-      pendingItems = result.items || [];
     }
 
     if (!pendingItems.length) {
