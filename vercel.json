@@ -1,46 +1,13 @@
 {
   "version": 2,
-  "functions": {
-    "server.js": {
-      "includeFiles": "node_modules/pdfjs-dist/build/**"
-    }
-  },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "server.js"
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/login.html",
-      "dest": "server.js"
-    },
-    {
-      "src": "/signup.html",
-      "dest": "server.js"
-    },
-    {
-      "src": "/vendor/pdfjs/(.*)",
-      "dest": "server.js"
-    },
-    {
-      "src": "/dashboard.html",
-      "dest": "server.js"
-    },
-    {
-      "src": "/groceries.html",
-      "dest": "server.js"
-    },
-    {
-      "src": "/add-grocery.html",
-      "dest": "server.js"
-    },
-    {
-      "src": "/bill-import.html",
-      "dest": "server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "public/$1"
+      "source": "/(.*)",
+      "destination": "/$1"
     }
   ]
 }
